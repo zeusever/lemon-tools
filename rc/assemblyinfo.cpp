@@ -1,4 +1,9 @@
+#include <fstream>
+#include <tools/lemon/rc/errorcode.h>
 #include <tools/lemon/rc/assemblyinfo.hpp>
+#include <tools/lemon/rc/lexer.hpp>
+#include <tools/lemon/rc/parser.hpp>
+#include <tools/lemon/rc/codegen.hpp>
 
 namespace lemon{namespace rc{namespace tools{
 
@@ -7,7 +12,8 @@ namespace lemon{namespace rc{namespace tools{
 		const lemon::String & version,
 		const lemon::String & infofile,
 		const lemon::String & scriptFile,
-		const lemon::String & generateFileDirectory)
+		const lemon::String & generateFileDirectory,
+		bool createMSRC) : _files(0)
 	{
 		luabind::lua_state L;
 
@@ -16,6 +22,7 @@ namespace lemon{namespace rc{namespace tools{
 				.def("errorinfo",&AssemblyInfo::AddErrorInfo)
 				.def("tracecatalog",&AssemblyInfo::AddTraceCatalog)
 				.def("tracename",&AssemblyInfo::TraceName)
+				.def("i18nname",&AssemblyInfo::I18nName)
 				.def("guid",&AssemblyInfo::GuidString)
 			;
 
@@ -33,7 +40,8 @@ namespace lemon{namespace rc{namespace tools{
 			L,"generate",this,
 			lemon::to_utf8(generateFileDirectory),
 			lemon::to_utf8(name),
-			(const char*)versionstring);
+			(const char*)versionstring,
+			createMSRC);
 	}
 
 	void AssemblyInfo::AddErrorInfo(lemon::uint32_t code, const char * name,const char * descripton)
@@ -61,5 +69,64 @@ namespace lemon{namespace rc{namespace tools{
 		);
 
 		return buffer;
+	}
+
+	void AssemblyInfo::Write(const lemon::String & path)
+	{
+		error_info errorCode;
+
+		std::ofstream stream(lemon::to_locale(path),std::ios::trunc);
+
+		if(!stream.is_open())
+		{
+			LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_OPENT_BINARY_RESOURCE_FILE_ERROR);
+
+			errorCode.check_throw(path.c_str());
+		}
+
+		_resource.write(stream);
+	}
+
+	void AssemblyInfo::GenerateFile(const lemon::String & source,const lemon::String target)
+	{
+		Lexer lexer(source.c_str());
+
+		Parser parser(this);
+
+		AST ast;
+
+		parser.Parse(lexer,ast);
+
+		AST::NodeListType::const_iterator iter,end = ast.NodeList.end();
+
+		for(iter = ast.NodeList.begin(); iter != end; ++ iter)
+		{
+			_resource.add(resource_trace_event(LEMON_MAKE_TRACE_EVENT_SEQUENCE(_files,iter->lines),lemon::from_locale(iter->formatter)));
+		}
+
+		CXXCodeGen gen(this,_files);
+
+		if(!target.empty())
+		{
+			std::ofstream stream(lemon::to_locale(target),std::ios::trunc);
+
+			if(!stream.is_open())
+			{
+				error_info ec;
+
+				LEMON_USER_ERROR(ec,TOOLS_LEMON_RC_FILE_WRITE_ERROR);
+
+				ec.check_throw();
+			}
+
+			gen.Generate(stream,ast);
+		}
+
+		++ _files;
+	}
+
+	void AssemblyInfo::AddI18nText(const std::string & key)
+	{
+		_resource.add(resource_text(lemon::from_locale(key),lemon::from_locale(key)));
 	}
 }}}

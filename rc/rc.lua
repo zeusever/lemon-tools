@@ -122,6 +122,8 @@ function generate(info,dir,name,versionstring)
 	
 	end
 	
+	prefix = string.upper(string.gsub(name,"[%-]","_"))
+	
 	if assembly.trace ~= nil then
 		info:tracename(assembly.trace.name)
 		
@@ -130,6 +132,8 @@ function generate(info,dir,name,versionstring)
 				info:tracecatalog(i,v.name,v.description)
 			end
 		end
+	else
+		info:tracename(prefix .. "_TRACE")
 	end
 	
 	guid = info:guid()
@@ -138,7 +142,9 @@ function generate(info,dir,name,versionstring)
 	
 	version[0],version[1],version[2],version[3] = versionstring:match("(%d+)%.(%d+)%.(%d+)%.(%d+)$")
 	
-	prefix = string.upper(string.gsub(name,"[%-]","_"))
+	local i18name = prefix .. "_I18N"
+	
+	info:i18nname(i18name)
 
 	assembly_h = dir .. "/assembly.h"
 
@@ -174,6 +180,9 @@ function generate(info,dir,name,versionstring)
 
 	headFile:write(prefix .. "_API const LemonUuid " .. prefix .. "_GUID;\n\n")
 	headFile:write(prefix .. "_API const LemonVersion " .. prefix .. "_VERSION;\n\n")
+	
+	headFile:write("#define " .. i18name .. "(msg)\tLemonI18nText(&" .. prefix .. "_GUID,LEMON_TEXT(msg))\n\n")
+	
 	sourceFile:write("const LemonUuid " .. prefix .. "_GUID = " .. guid .. ";\n\n")
 	sourceFile:write("const LemonVersion " .. prefix .. "_VERSION = {" .. version[0] .. "," .. version[1] .. "," .. version[2] .. "," .. version[3] .. "};\n\n")
 

@@ -28,8 +28,13 @@ assembly =
 		{
 			name = "INVALID_ASSEMBLYINFO_LUA_FILE";
 		};
+
 		{
 			name = "OPENT_OBJECT_CXX_FILE_ERROR";
+		};
+
+		{
+			name = "OPENT_BINARY_RESOURCE_FILE_ERROR";
 		};
 	  };
    }

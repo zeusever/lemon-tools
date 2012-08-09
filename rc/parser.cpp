@@ -1,11 +1,12 @@
 #include <sstream>
+#include <iostream>
 #include <tools/lemon/rc/parser.hpp>
 #include <tools/lemon/rc/errorcode.h>
-
+#include <tools/lemon/rc/assemblyinfo.hpp>
 namespace lemon{namespace rc{namespace tools{
 
-	Parser::Parser(const char * macroName)
-		:_macro(macroName)
+	Parser::Parser(AssemblyInfo * info)
+		:_info(info)
 	{
 
 	}
@@ -20,14 +21,72 @@ namespace lemon{namespace rc{namespace tools{
 
 		while(_lexer->Next(token))
 		{
-			if(token.Type == Lexer::TOKEN_ID && token.Value == _macro)
+			if(token.Type == Lexer::TOKEN_ID && token.Value == _info->TraceMacroName())
 			{
-				ParseMacroArgs();
+				ParseTraceMacroArgs();
+			}
+			else if(token.Type == Lexer::TOKEN_ID && token.Value == _info->I18nMacroName())
+			{
+				ParseI18nMacroArgs();
 			}
 		}
 	}
 
-	void Parser::ParseMacroArgs()
+	void Parser::ParseI18nMacroArgs()
+	{
+		Token token;
+
+		error_info errorCode;
+
+		if(!_lexer->Next(token) || token.Type != '(')
+		{
+			size_t lines = _lexer->Line();
+
+			size_t column = _lexer->Column();
+
+			LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_C_CXX_MACRO_ERROR);
+
+			lemon::StringStream stream;
+
+			stream << LEMON_TEXT("(") << lines << LEMON_TEXT(',') << column << LEMON_TEXT(") expect \"(\"");
+
+			errorCode.check_throw(stream.str().c_str());
+		}
+
+		if(!_lexer->Next(token) || token.Type != Lexer::TOKEN_LIT_TEXT)
+		{
+			size_t lines = _lexer->Line();
+
+			size_t column = _lexer->Column();
+
+			LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_C_CXX_MACRO_ERROR);
+
+			lemon::StringStream stream;
+
+			stream << LEMON_TEXT("(") << lines << LEMON_TEXT(',') << column << LEMON_TEXT(") expect literal string");
+
+			errorCode.check_throw(stream.str().c_str());
+		}
+
+		_info->AddI18nText(token.Value);
+
+		if(!_lexer->Next(token) || token.Type != ')')
+		{
+			size_t lines = _lexer->Line();
+
+			size_t column = _lexer->Column();
+
+			LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_C_CXX_MACRO_ERROR);
+
+			lemon::StringStream stream;
+
+			stream << LEMON_TEXT("(") << lines << LEMON_TEXT(',') << column << LEMON_TEXT(") expect \")\"");
+
+			errorCode.check_throw(stream.str().c_str());
+		}
+	}
+
+	void Parser::ParseTraceMacroArgs()
 	{
 		Token token;
 
@@ -116,11 +175,11 @@ namespace lemon{namespace rc{namespace tools{
 
 		}
 
-		LEMON_DECLARE_ERRORINFO(errorCode);
+		error_info errorCode;
 
 		LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_C_CXX_MACRO_ERROR);
 
-		throw lemon::Exception(errorCode);
+		errorCode.check_throw();
 	}
 
 }}}

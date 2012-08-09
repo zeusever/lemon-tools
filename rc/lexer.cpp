@@ -28,16 +28,12 @@ namespace lemon{namespace rc{namespace tools{
 
 		_buffer.resize(stream.tellg());
 
-		if(_buffer.empty())
+		if(!_buffer.empty())
 		{
-			LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_FILE_IS_EMPTY);
+			stream.seekg(0);
 
-			throw lemon::Exception(errorCode);
+			stream.read(&_buffer[0],_buffer.size());
 		}
-
-		stream.seekg(0);
-
-		stream.read(&_buffer[0],_buffer.size());
 
 		_lines = 1;
 
@@ -169,6 +165,13 @@ namespace lemon{namespace rc{namespace tools{
 		}
 
 		if('/' == *_iterator) cxxComment = true;
+
+		else if('*' != *_iterator)
+		{
+			token.Type = '/';
+
+			return;
+		}
 
 		++ _iterator;
 

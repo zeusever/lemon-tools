@@ -14,6 +14,8 @@
 
 namespace lemon{namespace rc{namespace tools{
 
+	class AssemblyInfo;
+
 	struct AST
 	{
 		struct Metadata{std::string formatter; size_t lines; size_t args; };
@@ -36,17 +38,19 @@ namespace lemon{namespace rc{namespace tools{
 	{
 	public:
 
-		Parser(const char * macroName);
+		Parser(AssemblyInfo * info);
 		
 		void Parse(Lexer & lexer,AST & ast);
 
 	private:
 
-		void ParseMacroArgs();
+		void ParseTraceMacroArgs();
+
+		void ParseI18nMacroArgs();
 
 	private:
 
-		std::string		_macro;
+		AssemblyInfo	*_info;
 
 		Lexer			*_lexer;
 
