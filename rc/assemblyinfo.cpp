@@ -1,5 +1,9 @@
+#include <stack>
 #include <fstream>
-#include <tools/lemon/rc/errorcode.h>
+#include <sstream>
+#include <algorithm>
+#include <lemonxx/function/bind.hpp>
+#include <tools/lemon/rc/assembly.h>
 #include <tools/lemon/rc/assemblyinfo.hpp>
 #include <tools/lemon/rc/lexer.hpp>
 #include <tools/lemon/rc/parser.hpp>
@@ -7,41 +11,51 @@
 
 namespace lemon{namespace rc{namespace tools{
 
-	AssemblyInfo::AssemblyInfo(
-		const lemon::String & name,
+	AssemblyInfo::AssemblyInfo
+		(
 		const lemon::String & version,
-		const lemon::String & infofile,
-		const lemon::String & scriptFile,
-		const lemon::String & generateFileDirectory,
-		bool createMSRC) : _files(0)
+		const lemon::String & projectPath,
+		const lemon::String & scriptFileDirectory,
+		const lemon::String & c_cxxGenerateFileDir,
+		bool createWin32RcFile
+		)
+		:_projectPath(projectPath)
+		,_scriptFileDirectory(scriptFileDirectory)
+		,_c_cxxGenerateFileDir(c_cxxGenerateFileDir)
+		,_createWin32RcFile(createWin32RcFile)
+		,_files(0)
 	{
-		luabind::lua_state L;
+		_resource.version(version.c_str());
 
-		luabind::module(L,"lemonrc")
-			<= luabind::class_<AssemblyInfo>("assemblyinfo")
-				.def("errorinfo",&AssemblyInfo::AddErrorInfo)
-				.def("tracecatalog",&AssemblyInfo::AddTraceCatalog)
-				.def("tracename",&AssemblyInfo::TraceName)
-				.def("i18nname",&AssemblyInfo::I18nName)
-				.def("guid",&AssemblyInfo::GuidString)
+		luabind::lua_state  L;
+
+		luabind::module(L,"lemon-rc")
+			<= luabind::class_<AssemblyInfo>("cassembly")
+						.def("error_info",&AssemblyInfo::AddErrorInfo)
+						.def("trace_catalog",&AssemblyInfo::AddTraceCatalog)
+						.def("guid",&AssemblyInfo::GuidString)
+						.def("version",&AssemblyInfo::VersionString)
+						.def("name",&AssemblyInfo::Name)
+						.def("trace_macro_name",&AssemblyInfo::TraceName)
+						.def("i18n_macro_name",&AssemblyInfo::I18nName)
 			;
 
-		luabind::dofile(L,lemon::to_locale(infofile).c_str());
+		StringStream stream;
 
-		luabind::dofile(L,lemon::to_locale(scriptFile).c_str());
+		stream << LEMON_TEXT("package.path = package.path .. \";") 
+			
+			<< scriptFileDirectory << LEMON_TEXT("/?.lua\"");
 
-		const LemonVersion * v = _resource.version(version.c_str());
+		// set the module search path
+		luabind::dostring(L,to_locale(stream.str()).c_str());
+		// load assemblyinfo metadata file
+		luabind::dofile(L,to_locale(projectPath + LEMON_TEXT("/assemblyinfo.lua")).c_str());
+		// load assembly compiler onload script
+		luabind::dofile(L,to_locale(scriptFileDirectory + LEMON_TEXT("/onload.lua")).c_str());
+		// call onload function
+		luabind::call<void>(L,"onload",this,to_locale(_c_cxxGenerateFileDir));
 
-		char versionstring[128] = {0};
-
-		lemon_sprintf(versionstring,sizeof(versionstring),"%d.%d.%d.%d",v->Major,v->Minor,v->Build,v->Reversion);
-
-		luabind::call<void>(
-			L,"generate",this,
-			lemon::to_utf8(generateFileDirectory),
-			lemon::to_utf8(name),
-			(const char*)versionstring,
-			createMSRC);
+		ScanC_CxxFiles();
 	}
 
 	void AssemblyInfo::AddErrorInfo(lemon::uint32_t code, const char * name,const char * descripton)
@@ -71,7 +85,18 @@ namespace lemon{namespace rc{namespace tools{
 		return buffer;
 	}
 
-	void AssemblyInfo::Write(const lemon::String & path)
+	const std::string AssemblyInfo::VersionString()
+	{
+		const LemonVersion * version = _resource.version();
+
+		char buffer[56] = {0};
+
+		lemon_sprintf(buffer,sizeof(buffer),"{%d,%d,%d,%d}",version->Major,version->Minor,version->Build,version->Reversion);
+
+		return buffer;
+	}
+
+	void AssemblyInfo::WriteBinaryFile(const lemon::String & path)
 	{
 		error_info errorCode;
 
@@ -87,46 +112,114 @@ namespace lemon{namespace rc{namespace tools{
 		_resource.write(stream);
 	}
 
-	void AssemblyInfo::GenerateFile(const lemon::String & source,const lemon::String target)
-	{
-		Lexer lexer(source.c_str());
-
-		Parser parser(this);
-
-		AST ast;
-
-		parser.Parse(lexer,ast);
-
-		AST::NodeListType::const_iterator iter,end = ast.NodeList.end();
-
-		for(iter = ast.NodeList.begin(); iter != end; ++ iter)
-		{
-			_resource.add(resource_trace_event(LEMON_MAKE_TRACE_EVENT_SEQUENCE(_files,iter->lines),lemon::from_locale(iter->formatter)));
-		}
-
-		CXXCodeGen gen(this,_files);
-
-		if(!target.empty())
-		{
-			std::ofstream stream(lemon::to_locale(target),std::ios::trunc);
-
-			if(!stream.is_open())
-			{
-				error_info ec;
-
-				LEMON_USER_ERROR(ec,TOOLS_LEMON_RC_FILE_WRITE_ERROR);
-
-				ec.check_throw();
-			}
-
-			gen.Generate(stream,ast);
-		}
-
-		++ _files;
-	}
-
 	void AssemblyInfo::AddI18nText(const std::string & key)
 	{
 		_resource.add(resource_text(lemon::from_locale(key),lemon::from_locale(key)));
+	}
+
+	void AssemblyInfo::AddTraceEvent(lemon::uint32_t seq,const std::string & key)
+	{
+		_resource.add(resource_trace_event(seq,lemon::from_locale(key)));
+	}
+
+	bool ExtensionCompare(const lemon::String & lhs,const lemon::char_t * rhs)
+	{
+		return lhs == rhs;
+	}
+
+	void AssemblyInfo::ScanC_CxxFiles()
+	{
+		static const lemon::char_t* c_cxx_extensions[] = 
+		{
+			LEMON_TEXT("h"),LEMON_TEXT("hpp"),LEMON_TEXT("hxx"),LEMON_TEXT("hh"),
+			LEMON_TEXT("c"),LEMON_TEXT("cpp"),LEMON_TEXT("cc"),LEMON_TEXT("cxx")
+		};
+
+		static const lemon::char_t* source_extensions[] = 
+		{
+			LEMON_TEXT("c"),LEMON_TEXT("cpp"),LEMON_TEXT("cc"),LEMON_TEXT("cxx")
+		};
+
+		const lemon::char_t ** c_cxx_extensions_begin = c_cxx_extensions;
+
+		const lemon::char_t ** c_cxx_extensions_end = c_cxx_extensions + sizeof(c_cxx_extensions)/sizeof(char_t*);
+
+		const lemon::char_t ** source_extensions_begin = source_extensions;
+
+		const lemon::char_t ** source_extensions_end = source_extensions + sizeof(source_extensions)/sizeof(char_t*);
+
+		std::stack<lemon::String>	directories;
+
+		directories.push(_projectPath);
+
+		while(!directories.empty())
+		{
+			lemon::String directory = directories.top();
+
+			fs::directory_iteartor_t iter(directory),end;
+
+			directories.pop();
+
+			for(;iter != end; ++ iter)
+			{
+				fs::path path(directory + LEMON_TEXT("/") + *iter);
+
+				path.compress();
+
+				if(*iter == LEMON_TEXT(".") || *iter == LEMON_TEXT(".."))
+				{
+					continue;
+				}
+
+				if(fs::is_directory(path.string()))  
+				{
+					directories.push(path.string()); 
+					
+					continue; 
+				}
+
+				lemon::String extension = fs::extension(path);
+
+
+				if(c_cxx_extensions_end != std::find_if(
+					c_cxx_extensions_begin,
+					c_cxx_extensions_end,
+					lemon::bind(&ExtensionCompare,lemon::cref(extension),lemon::_0)))
+				{
+
+					AST ast;
+
+					Lexer lexer(path.string().c_str());
+
+					Parser parser(this);
+
+					parser.Parse(lexer,ast);
+
+					if(source_extensions_end != std::find_if(
+						source_extensions_begin,
+						source_extensions_end,
+						lemon::bind(&ExtensionCompare,lemon::cref(extension),lemon::_0)))
+					{
+						if(ast.Size() == 0)  continue;
+
+						AST::NodeListType::const_iterator iter,end = ast.NodeList.end();
+
+						for(iter = ast.NodeList.begin(); iter != end; ++ iter)
+						{
+							AddTraceEvent(LEMON_MAKE_TRACE_EVENT_SEQUENCE(_files,iter->lines),iter->formatter);
+						}
+
+						CXXCodeGen codegen(this,_files);
+
+						fs::path target = fs::path(_c_cxxGenerateFileDir) / fs::relative(fs::path(_projectPath),path);
+
+						codegen.Generate(target.string() + LEMON_TEXT(".g.hpp") ,ast);
+
+						++ _files;
+					}
+				}
+				
+			}
+		}
 	}
 }}}

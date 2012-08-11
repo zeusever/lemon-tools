@@ -19,29 +19,40 @@ namespace lemon{namespace rc{namespace tools{
 	{
 	public:
 
-		AssemblyInfo(
-			const lemon::String & name,
+		AssemblyInfo
+			(
 			const lemon::String & version,
-			const lemon::String & infofile,
-			const lemon::String & scriptFile,
-			const lemon::String & generateFileDirectory,
-			bool createMSRC);
+			const lemon::String & projectPath,
+			const lemon::String & scriptFileDirectory,
+			const lemon::String & c_cxxGenerateFileDir,
+			bool createWin32RcFile
+			);
 
-		void Write(const lemon::String & path);
+		void WriteBinaryFile(const lemon::String & path);
 
-		void GenerateFile(const lemon::String & source,const lemon::String target);
-
-		const std::string TraceMacroName() const { return _traceMacroName; }
+		const std::string TraceMacroName() { return _traceMacroName; }
 
 		const std::string I18nMacroName() const { return _i18nName; }
 
 		void AddI18nText(const std::string & key);
+	
+		void AddTraceEvent(lemon::uint32_t seq,const std::string & key);
 
 		lemon::uuid_t Uuid() const { return _resource.guid(); }
 
 		const resource &  Resource() const {return _resource; }
 
+		const std::string GuidString();
+
+		const std::string VersionString();
+
+		const lemon::String &ScriptFileDirectory() const { return _scriptFileDirectory; }
+
+		const std::string & GetName() { return _name; }
+
 	private:
+
+		void ScanC_CxxFiles();
 
 		void AddErrorInfo(lemon::uint32_t code, const char * name,const char * descripton);
 
@@ -51,7 +62,7 @@ namespace lemon{namespace rc{namespace tools{
 
 		void I18nName(const char * name) { _i18nName = name; }
 
-		const std::string GuidString();
+		void Name(const char * name) { _name = name; }
 
 	private:
 
@@ -62,6 +73,16 @@ namespace lemon{namespace rc{namespace tools{
 		std::string					_traceMacroName;
 
 		std::string					_i18nName;
+
+		std::string					_name;
+
+		lemon::String				_projectPath;
+
+		lemon::String				_scriptFileDirectory;
+
+		lemon::String				_c_cxxGenerateFileDir;
+
+		bool						_createWin32RcFile;
 	};
 
 }}}

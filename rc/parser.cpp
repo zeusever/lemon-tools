@@ -1,7 +1,7 @@
 #include <sstream>
 #include <iostream>
 #include <tools/lemon/rc/parser.hpp>
-#include <tools/lemon/rc/errorcode.h>
+#include <tools/lemon/rc/assembly.h>
 #include <tools/lemon/rc/assemblyinfo.hpp>
 namespace lemon{namespace rc{namespace tools{
 

@@ -1,8 +1,8 @@
 #include <locale>
 #include <fstream>
 #include <tools/lemon/rc/lexer.hpp>
-#include <tools/lemon/rc/errorcode.h>
-#include <lemon/sys/errorcode.h>
+#include <tools/lemon/rc/assembly.h>
+#include <lemon/sys/assembly.h>
 
 namespace lemon{namespace rc{namespace tools{
 
