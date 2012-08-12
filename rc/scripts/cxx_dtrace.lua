@@ -9,7 +9,7 @@ trace_hpp_t =
  * @date     ${DATE}
  */
 #include "assembly.h"
-#include <lemonxx/trace/trace.hpp>
+#include <lemonxx/diagnosis/trace.hpp>
 
 template <size_t Lines> struct __lemon_dtrace_log;
 
@@ -24,9 +24,22 @@ trace_hpp_function_t =
 template <> struct __lemon_dtrace_log<${LINE}>
 {
 	template<typename Provider ${ARGS_T}>
-	void operator()( Provider provider , lemon_uint8_t level , lemon_uint32_t flags , const char * ${ARGS} )
+	void operator()( Provider &provider , lemon_uint32_t level , lemon_uint32_t catalog , const char * ${ARGS} )
 	{
+		LemonDTraceFlags flags;
 
+		flags.S.Level = level;
+
+		flags.S.Catalog = catalog;
+
+		lemon::dtrace::commit_message cm(provider,flags);
+
+		if(cm.want())
+		{
+			${WRITE}
+
+			cm.commit();
+		}
 	}
 };
 ]==]
@@ -51,10 +64,14 @@ function generate_sub_file( path , cassembly , trace_metadatas )
 
 		local ARGS  = ""
 
-		for i = 0 , args - 4, 1 do
-			ARGS_T = ARGS_T .. ", A" .. i
+		local WRITE = ""
+
+		for i = 0 , args - 5, 1 do
+			ARGS_T = ARGS_T .. ", typename A" .. i
 
 			ARGS = ARGS .. ", A" .. i .. " a" .. i
+
+			WRITE = WRITE .. "write(cm, a" .. i .. ");"
 		end
 
 		function_codes = function_codes .. string.gsub(trace_hpp_function_t,"${LINE}",lines)
@@ -62,6 +79,8 @@ function generate_sub_file( path , cassembly , trace_metadatas )
 		function_codes = string.gsub(function_codes,"${ARGS_T}",ARGS_T)
 
 		function_codes = string.gsub(function_codes,"${ARGS}",ARGS)
+
+		function_codes = string.gsub(function_codes,"${WRITE}",WRITE)
 	end
 
 	sub_files_codes = string.gsub(sub_files_codes,"${IMPL}",function_codes)
