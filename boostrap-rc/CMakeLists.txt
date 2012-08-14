@@ -4,7 +4,7 @@ include_directories(BEFORE ${PROJECT_BINARY_DIR}/bootstrap/ ${PROJECT_BINARY_DIR
 
 lemon_c_cxx_files(SRC PATH ${PROJECT_SOURCE_DIR}/tools/lemon/rc)
 
-lemonxx_ctg_files(CTGS DIR lemonxx)
+lemonxx_ctg_files(CTGS BOOTSTRAP DIR lemonxx)
 
 lemon_c_cxx_files(SYS_FILES PATH ${PROJECT_SOURCE_DIR}/sources/lemon/sys DIR sys)
 

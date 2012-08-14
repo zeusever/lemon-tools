@@ -26,7 +26,7 @@ namespace lemon{namespace rc{namespace tools{
 
 		stream.seekg(0,std::ios::end);
 
-		_buffer.resize(stream.tellg());
+		_buffer.resize((size_t)stream.tellg());
 
 		if(!_buffer.empty())
 		{

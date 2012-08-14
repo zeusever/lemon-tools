@@ -76,7 +76,7 @@ namespace lemon{namespace rc{namespace tools{
 
 		char buffer[128] = {0};
 
-		lemon_sprintf(
+		lemon_csprintf(
 			buffer,sizeof(buffer),"{0x%02X%02X%02X%02X,0x%02X%02X,0x%02X%02X,{0x%02X,0x%02X,0x%02X,0x%02X,0x%02X,0x%02X,0x%02X,0x%02X}}",
 			bytes[3],bytes[2],bytes[1],bytes[0],bytes[5],bytes[4],bytes[7],bytes[6],
 			bytes[8],bytes[9],bytes[10],bytes[11],bytes[12],bytes[13],bytes[14],bytes[15]
@@ -91,7 +91,7 @@ namespace lemon{namespace rc{namespace tools{
 
 		char buffer[56] = {0};
 
-		lemon_sprintf(buffer,sizeof(buffer),"{%d,%d,%d,%d}",version->Major,version->Minor,version->Build,version->Reversion);
+		lemon_csprintf(buffer,sizeof(buffer),"{%d,%d,%d,%d}",version->Major,version->Minor,version->Build,version->Reversion);
 
 		return buffer;
 	}

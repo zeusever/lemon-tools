@@ -174,7 +174,7 @@ function generate_assembly_c_cxx_file( cassembly , assembly , c_cxx_gen_dir )
 
 	cassembly:name(assembly.name)
 	-- set the default trace macro name
-	cassembly:trace_macro_name(prefix .. "TRACE")
+	cassembly:trace_macro_name(prefix .. "_TRACE")
 	-- set the default i18n text macro name
 	cassembly:i18n_macro_name(prefix .. "_I18N_TEXT")
 	-- replace guard macro name
@@ -195,15 +195,18 @@ function generate_assembly_c_cxx_file( cassembly , assembly , c_cxx_gen_dir )
 		if assembly.dtrace.name ~= nil then cassembly:trace_macro_name(assembly.dtrace.name) end
 		-- check if defined catalog
 		if assembly.dtrace.catalog ~= nil then
+			
 			for value , metadata in ipairs(assembly.dtrace.catalog) do
+
+				local name = prefix .. "_" .. metadata.name 
 				
-				content_h_codes = content_h_codes .. "#define " .. metadata.name .. "\t(lemon_uint32_t)(0x00000001 << " .. value .. ")\n\n"
+				content_h_codes = content_h_codes .. "#define " .. name .. "\t(lemon_uint32_t)(0x00000001 << " .. value .. ")\n\n"
 
 				local description = ""
 
 				if metadata.description ~= nil then description = metadata.description end
 
-				cassembly:trace_catalog(bit32.arshift( 0x00000001, 0 - value ) , metadata.name , description)
+				cassembly:trace_catalog(bit32.arshift( 0x00000001, 0 - value ) , name , description)
 			end
 		end
 	end 
