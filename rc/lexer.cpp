@@ -13,7 +13,7 @@ namespace lemon{namespace rc{namespace tools{
 #ifdef WIN32
 		std::ifstream stream(fileName);
 #else
-		std::ifstream stream(lemon::to_locale(fileName));
+		std::ifstream stream(lemon::to_locale(fileName).c_str());
 #endif //WIN32
 
 		if(!stream.is_open())

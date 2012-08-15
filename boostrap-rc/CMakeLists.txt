@@ -42,3 +42,7 @@ else()
 endif()
 
 lemon_exe_project(tools-lemon-boostrap-rc BOOTSTRAP RENAME lemon-boostrap-rc ${RC_CONFIG_FILES} ${RC_ASSEMBLY_FILES} ${SRC} ${LUA_FILES} ${CTGS} ${MEMORY_FILES} ${MEMORY_ASSEMBLY_FILES} ${LEMONXX_ASSEMBLY_FILES} ${LEMONXX_FILES} ${SYS_FILES} ${IO_FILES} ${SYS_ASSEMBLY_FILES} ${IO_ASSEMBLY_FILES}) 
+
+if(NOT WIN32)
+	target_link_libraries(tools-lemon-boostrap-rc dl)
+endif()

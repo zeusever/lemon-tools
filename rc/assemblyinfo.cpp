@@ -100,7 +100,7 @@ namespace lemon{namespace rc{namespace tools{
 	{
 		error_info errorCode;
 
-		std::ofstream stream(lemon::to_locale(path),std::ios::trunc);
+		std::ofstream stream(lemon::to_locale(path).c_str(),std::ios::trunc);
 
 		if(!stream.is_open())
 		{
