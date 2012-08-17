@@ -14,6 +14,7 @@ assembly_c_h_t =
 
 #include "configure.h"
 #include <lemon/sys/abi.h>
+#include <lemon/resource/abi.h>
 
 ${CONTENT}
 
@@ -185,6 +186,8 @@ function generate_assembly_c_cxx_file( cassembly , assembly , c_cxx_gen_dir )
 	content_h_codes = content_h_codes .. export_import_prefix .. " const LemonVersion " .. assembly_version .. ";\n\n"
 
 	content_h_codes = content_h_codes .. "#define " .. prefix .. "_I18N_TEXT(msg) \t" .. "LemonI18nText(&" .. assembly_guid .. ",LEMON_TEXT(msg))\n\n"
+
+	content_h_codes = content_h_codes .. "#define " .. prefix .. "_ERROR_MESSAGE(error) \t" .. "LemonErrorMessage((error))\n\n"
 
 	local content_cpp_codes =  "const LemonUuid " .. assembly_guid .. " = " .. cassembly:guid() .. ";\n\n"
 

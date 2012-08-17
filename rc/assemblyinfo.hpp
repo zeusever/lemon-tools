@@ -34,13 +34,11 @@ namespace lemon{namespace rc{namespace tools{
 
 		const std::string I18nMacroName() const { return _i18nName; }
 
-		void AddI18nText(const std::string & key);
+		void AddI18nText(const std::string & /*key*/) {}
 	
-		void AddTraceEvent(lemon::uint32_t seq,const std::string & key);
+		void AddTraceEvent(lemon::uint32_t /*seq*/,const std::string & key);
 
-		lemon::uuid_t Uuid() const { return _resource.guid(); }
-
-		const resource &  Resource() const {return _resource; }
+		lemon::uuid_t Uuid() const { return lemon::uuid_t(); }
 
 		const std::string GuidString();
 
@@ -54,9 +52,9 @@ namespace lemon{namespace rc{namespace tools{
 
 		void ScanC_CxxFiles();
 
-		void AddErrorInfo(lemon::uint32_t code, const char * name,const char * descripton);
+		void AddErrorInfo(lemon::uint32_t /*code*/, const char * /*name*/,const char * /*descripton*/) {}
 
-		void AddTraceCatalog(lemon::uint32_t value,const char * name,const char * descripton);
+		void AddTraceCatalog(lemon::uint32_t /*value*/,const char * /*name*/,const char * /*descripton*/) {}
 
 		void TraceName(const char * name) { _traceMacroName = name; }
 
@@ -68,7 +66,6 @@ namespace lemon{namespace rc{namespace tools{
 
 		lemon_uint32_t				_files;
 
-		resource					_resource;
 
 		std::string					_traceMacroName;
 

@@ -12,6 +12,8 @@ lemon_c_cxx_files(LUA_FILES PATH ${PROJECT_SOURCE_DIR}/sources/lemon/lua DIR lua
 
 lemon_c_cxx_files(MEMORY_FILES PATH ${PROJECT_SOURCE_DIR}/sources/lemon/memory DIR memory)
 
+lemon_c_cxx_files(RESOURCE_FILES PATH ${PROJECT_SOURCE_DIR}/sources/lemon/resource DIR resource)
+
 lemon_c_cxx_files(LEMONXX_FILES PATH ${PROJECT_SOURCE_DIR}/sources/lemonxx DIR lemonxx)
 
 lemon_project_config(RC_CONFIG_FILES tools-lemon-rc BOOTSTRAP PATH ${PROJECT_SOURCE_DIR}/tools/lemon/rc)
@@ -30,6 +32,10 @@ lemon_project_config(MEMORY_CONFIG_FILES lemon-memory BOOTSTRAP PATH ${PROJECT_S
 
 lemon_project_info(MEMORY_ASSEMBLY_FILES lemon-memory "1.0.*" PATH ${PROJECT_SOURCE_DIR}/sources/lemon/memory DIR memory)
 
+lemon_project_config(RESOURCE_CONFIG_FILES lemon-resource BOOTSTRAP PATH ${PROJECT_SOURCE_DIR}/sources/lemon/resource DIR resource )
+
+lemon_project_info(RESOURCE_ASSEMBLY_FILES lemon-resource "1.0.*" PATH ${PROJECT_SOURCE_DIR}/sources/lemon/resource DIR resource)
+
 lemon_project_config(LUA_CONFIG_FILES lemon-lua BOOTSTRAP PATH ${PROJECT_SOURCE_DIR}/sources/lemon/lua DIR lua )
 
 if(WIN32)
@@ -41,7 +47,7 @@ else()
 	add_definitions(-DLEMON_SYS_BUILD -DLEMON_IO_BUILD)
 endif()
 
-lemon_exe_project(tools-lemon-boostrap-rc BOOTSTRAP RENAME lemon-boostrap-rc ${RC_CONFIG_FILES} ${RC_ASSEMBLY_FILES} ${SRC} ${LUA_FILES} ${CTGS} ${MEMORY_FILES} ${MEMORY_ASSEMBLY_FILES} ${LEMONXX_ASSEMBLY_FILES} ${LEMONXX_FILES} ${SYS_FILES} ${IO_FILES} ${SYS_ASSEMBLY_FILES} ${IO_ASSEMBLY_FILES}) 
+lemon_exe_project(tools-lemon-boostrap-rc BOOTSTRAP RENAME lemon-boostrap-rc ${RESOURCE_ASSEMBLY_FILES} ${RESOURCE_CONFIG_FILES} ${RESOURCE_FILES} ${RC_CONFIG_FILES} ${RC_ASSEMBLY_FILES} ${SRC} ${LUA_FILES} ${CTGS} ${MEMORY_FILES} ${MEMORY_ASSEMBLY_FILES} ${LEMONXX_ASSEMBLY_FILES} ${LEMONXX_FILES} ${SYS_FILES} ${IO_FILES} ${SYS_ASSEMBLY_FILES} ${IO_ASSEMBLY_FILES}) 
 
 if(NOT WIN32)
 	target_link_libraries(tools-lemon-boostrap-rc dl)
