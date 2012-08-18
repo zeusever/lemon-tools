@@ -64,6 +64,6 @@ namespace lemon{namespace rc{namespace tools{
 
 		luabind::dofile(L,to_locale(_info->ScriptFileDirectory() + LEMON_TEXT("/cxx_dtrace.lua")).c_str());
 
-		luabind::call<void>(L,"generate_sub_file",to_locale(filePath),_info,&visitor);
+		luabind::call<void>(L,"generate_sub_file",to_locale(filePath),_info,&visitor,_moduleId);
 	}
 }}}

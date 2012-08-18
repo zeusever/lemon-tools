@@ -13,7 +13,7 @@ namespace lemon{namespace rc{namespace tools{
 
 	AssemblyInfo::AssemblyInfo
 		(
-		const lemon::String & /*version*/,
+		const lemon::String & version,
 		const lemon::String & projectPath,
 		const lemon::String & scriptFileDirectory,
 		const lemon::String & c_cxxGenerateFileDir,
@@ -25,7 +25,7 @@ namespace lemon{namespace rc{namespace tools{
 		,_createWin32RcFile(createWin32RcFile)
 		,_files(0)
 	{
-		//_resource.version(version.c_str());
+		_package.Version(version.c_str());
 
 		luabind::lua_state  L;
 
@@ -60,9 +60,7 @@ namespace lemon{namespace rc{namespace tools{
 
 	const std::string AssemblyInfo::GuidString()
 	{
-		lemon::uuid_t id;//_resource.guid();
-
-		const lemon_byte_t * bytes = (const lemon_byte_t*)&id;
+		const lemon_byte_t * bytes = (const lemon_byte_t*)_package.Uuid();
 
 		char buffer[128] = {0};
 
@@ -77,9 +75,7 @@ namespace lemon{namespace rc{namespace tools{
 
 	const std::string AssemblyInfo::VersionString()
 	{
-		LemonVersion v;
-
-		const LemonVersion * version = &v;//_resource.version();
+		const LemonVersion * version = _package.Version();
 
 		char buffer[56] = {0};
 
@@ -101,18 +97,36 @@ namespace lemon{namespace rc{namespace tools{
 			errorCode.check_throw(path.c_str());
 		}
 
-		//_resource.write(stream);
+		resource::StreamWriter writer(stream);
+
+		_package.Write(writer);
 	}
 
-	//void AssemblyInfo::AddI18nText(const std::string & key)
-	//{
-	//	//_resource.add(resource_text(lemon::from_locale(key),lemon::from_locale(key)));
-	//}
+	void AssemblyInfo::AddErrorInfo(lemon::uint32_t code, const char * name,const char * descripton)
+	{
+		_package.NewErrorMessage(code,lemon::from_locale(name).c_str(),lemon::from_locale(descripton).c_str(),LEMON_TEXT(""));
+	}
 
-	//void AssemblyInfo::AddTraceEvent(lemon::uint32_t seq,const std::string & key)
-	//{
-	//	//_resource.add(resource_trace_event(seq,lemon::from_locale(key)));
-	//}
+	void AssemblyInfo::AddTraceCatalog(lemon::uint32_t value,const char * name,const char * descripton)
+	{
+		_package.NewTraceCatalog(value,lemon::from_locale(name).c_str(),lemon::from_locale(descripton).c_str(),LEMON_TEXT(""));
+	}
+
+	void AssemblyInfo::AddI18nText(const std::string & key)
+	{
+		//_resource.add(resource_text(lemon::from_locale(key),lemon::from_locale(key)));
+
+		lemon::String val = lemon::from_locale(key);
+
+		_package.NewText(val.c_str(),val.c_str(),LEMON_TEXT(""));
+	}
+
+	void AssemblyInfo::AddTraceEvent(lemon::uint32_t seq,const std::string & key)
+	{
+		//_resource.add(resource_trace_event(seq,lemon::from_locale(key)));
+
+		_package.NewTraceMessage(seq,lemon::from_locale(key).c_str(),LEMON_TEXT(""));
+	}
 
 	bool ExtensionCompare(const lemon::String & lhs,const lemon::char_t * rhs)
 	{
@@ -198,7 +212,7 @@ namespace lemon{namespace rc{namespace tools{
 
 						for(iter = ast.NodeList.begin(); iter != end; ++ iter)
 						{
-							//AddTraceEvent(LEMON_MAKE_TRACE_EVENT_SEQUENCE(_files,iter->lines),iter->formatter);
+							AddTraceEvent(LEMON_MAKE_TRACEMESSAGE_ID(_files,iter->lines),iter->formatter);
 						}
 
 						CXXCodeGen codegen(this,_files);

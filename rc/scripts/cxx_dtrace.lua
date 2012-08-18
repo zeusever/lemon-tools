@@ -36,6 +36,16 @@ template <> struct __lemon_dtrace_log<${LINE}>
 
 		if(cm.want())
 		{
+			lemon::uint32_t id = LEMON_MAKE_TRACEMESSAGE_ID(${FILE_ID},${LINE});
+			
+			id = ntohl(id);
+		
+			lemon::uint8_t args = ${ARGS_1};
+			
+			cm.write_rawdata((const lemon::byte_t*)&id,sizeof(id));
+			
+			cm.write_rawdata((const lemon::byte_t*)&args,sizeof(args));
+		
 			${WRITE}
 
 			cm.commit();
@@ -44,7 +54,7 @@ template <> struct __lemon_dtrace_log<${LINE}>
 };
 ]==]
 
-function generate_sub_file( path , cassembly , trace_metadatas )
+function generate_sub_file( path , cassembly , trace_metadatas, id)
 	-- body
 	local sub_files = assert(io.open(path,"w+"),"can't open file to write :" .. path)
 
@@ -75,6 +85,10 @@ function generate_sub_file( path , cassembly , trace_metadatas )
 		end
 
 		function_codes = function_codes .. string.gsub(trace_hpp_function_t,"${LINE}",lines)
+		
+		function_codes = string.gsub(function_codes,"${ARGS_1}",args - 4)
+		
+		function_codes = string.gsub(function_codes,"${FILE_ID}",id)
 
 		function_codes = string.gsub(function_codes,"${ARGS_T}",ARGS_T)
 
