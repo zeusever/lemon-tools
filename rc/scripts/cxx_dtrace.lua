@@ -38,7 +38,7 @@ template <> struct __lemon_dtrace_log<${LINE}>
 		{
 			lemon::uint32_t id = LEMON_MAKE_TRACEMESSAGE_ID(${FILE_ID},${LINE});
 			
-			id = ntohl(id);
+			id = htonl(id);
 		
 			lemon::uint8_t args = ${ARGS_1};
 			
