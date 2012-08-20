@@ -12,7 +12,6 @@
 #include <lemonxx/sys/sys.hpp>
 #include <lemonxx/utility/utility.hpp>
 #include <lemonxx/luabind/luabind.hpp>
-#include <lemon/resource/package.hpp>
 
 namespace lemon{namespace rc{namespace tools{
 
@@ -67,7 +66,7 @@ namespace lemon{namespace rc{namespace tools{
 
 		lemon_uint32_t				_files;
 
-		resource::Package			_package;
+		resource::package			_package;
 
 		std::string					_traceMacroName;
 
