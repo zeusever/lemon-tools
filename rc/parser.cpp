@@ -102,11 +102,11 @@ namespace lemon{namespace rc{namespace tools{
 
 		if(token.Type != '(') 
 		{
-			LEMON_DECLARE_ERRORINFO(errorCode);
+			error_info errorCode;
 
 			LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_C_CXX_MACRO_ERROR);
 
-			throw lemon::Exception(errorCode);
+			errorCode.check_throw();
 		}
 
 		while(_lexer->Next(token))
@@ -127,11 +127,11 @@ namespace lemon{namespace rc{namespace tools{
 
 					if(args < 4)
 					{
-						LEMON_DECLARE_ERRORINFO(errorCode);
+						error_info errorCode;
 
 						LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_EXPECT_FORMATTER_STRING);
 
-						throw lemon::Exception(errorCode);
+						errorCode.check_throw();
 					}
 
 					_ast->Add(formatter,lines,args);
@@ -145,22 +145,22 @@ namespace lemon{namespace rc{namespace tools{
 			{
 				if(token.Type != Lexer::TOKEN_LIT_TEXT || !expectNext)
 				{
-					LEMON_DECLARE_ERRORINFO(errorCode);
+					error_info errorCode;
 
 					LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_C_CXX_MACRO_ERROR);
 
-					throw lemon::Exception(errorCode);
+					errorCode.check_throw();
 				}
 
 				formatter = token.Value;
 				
 				if(!_lexer->Next(token) || (token.Type != ',' && token.Type != ')'))
 				{
-					LEMON_DECLARE_ERRORINFO(errorCode);
+					error_info errorCode;
 
 					LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_C_CXX_MACRO_ERROR);
 
-					throw lemon::Exception(errorCode);
+					errorCode.check_throw();
 				}
 
 				++ args;
@@ -179,7 +179,7 @@ namespace lemon{namespace rc{namespace tools{
 
 		LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_C_CXX_MACRO_ERROR);
 
-		errorCode.check_throw();
+		errorCode.check_throw();;
 	}
 
 }}}

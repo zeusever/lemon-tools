@@ -8,7 +8,7 @@ namespace lemon{namespace rc{namespace tools{
 
 	void Lexer::ReloadFile(const lemon_char_t * fileName)
 	{
-		LEMON_DECLARE_ERRORINFO(errorCode);
+		error_info errorCode;
 
 #ifdef WIN32
 		std::ifstream stream(fileName);
@@ -20,7 +20,7 @@ namespace lemon{namespace rc{namespace tools{
 		{
 			LEMON_USER_ERROR(errorCode,LEMON_SYS_RESOURCE_ERROR);
 
-			throw lemon::Exception(errorCode);
+			errorCode.check_throw();
 		}
 
 
@@ -57,7 +57,7 @@ namespace lemon{namespace rc{namespace tools{
 
 	bool Lexer::Next(Token & token)
 	{
-		//LEMON_DECLARE_ERRORINFO(errorCode);
+		//error_info errorCode;
 
 		if(_iterator == _buffer.end()) return false;
 
@@ -153,7 +153,7 @@ namespace lemon{namespace rc{namespace tools{
 
 	void Lexer::ReadComment(Token & token)
 	{
-		LEMON_DECLARE_ERRORINFO(errorCode);
+		error_info errorCode;
 
 		bool cxxComment = false;
 
@@ -161,7 +161,7 @@ namespace lemon{namespace rc{namespace tools{
 		{
 			LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_C_CXX_LEX_ERROR);
 
-			throw lemon::Exception(errorCode);
+			errorCode.check_throw();
 		}
 
 		if('/' == *_iterator) cxxComment = true;
@@ -234,13 +234,13 @@ namespace lemon{namespace rc{namespace tools{
 		{
 			LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_C_CXX_LEX_ERROR);
 
-			throw lemon::Exception(errorCode);
+			errorCode.check_throw();
 		}
 	}
 
 	void Lexer::ReadLitText(Token & token)
 	{
-		LEMON_DECLARE_ERRORINFO(errorCode);
+		error_info errorCode;
 
 		char pattern = *_iterator;
 
@@ -248,7 +248,7 @@ namespace lemon{namespace rc{namespace tools{
 		{
 			LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_C_CXX_LEX_ERROR);
 
-			throw lemon::Exception(errorCode);
+			errorCode.check_throw();
 		}
 
 		buffer_type::const_iterator begin = _iterator;
@@ -279,7 +279,7 @@ namespace lemon{namespace rc{namespace tools{
 
 		LEMON_USER_ERROR(errorCode,TOOLS_LEMON_RC_C_CXX_LEX_ERROR);
 
-		throw lemon::Exception(errorCode);
+		errorCode.check_throw();
 	}
 
 	void Lexer::ReadNumber(Token & token)
