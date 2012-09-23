@@ -1,0 +1,14 @@
+${usage}:
+	${program name} [--script-file-path path]  [--version version] <--gen-c-cxx-directory path> <--object binary> [--ms-rc] assemblyinfo
+
+${group} :general
+	
+	${option:string} script-file-path,spath: the lemon-rc program lua script directory
+
+	${option:string} version,v: the assembly version string, the default value of this option is "1.0.*"
+
+	${option:string} gen-c-cxx-directory: the geneate c/c++ files output directory
+
+	${option:bool} ms-rc: when this option is on , the ${program name} create the win32 c/c++ rc file
+
+	${position:string} assemblyinfo: the lemon assemblyinfo.lua file full path
