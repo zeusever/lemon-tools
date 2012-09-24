@@ -14,6 +14,7 @@
 #include <tools/lemon/rc/assemblyinfo.hpp>
 #include <tools/lemon/rc/assembly.h>
 
+using namespace lemon;
 using namespace lemon::rc::tools;
 
 #ifdef WIN32
