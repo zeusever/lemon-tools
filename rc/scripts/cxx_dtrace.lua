@@ -9,7 +9,8 @@ trace_hpp_t =
  * @date     ${DATE}
  */
 #include "assembly.h"
-#include <lemonxx/diagnosis/trace.hpp>
+#include <lemonxx/trace/object.hpp>
+#include <lemonxx/trace/type_rw.hpp>
 
 template <size_t Lines> struct __lemon_dtrace_log;
 
@@ -26,15 +27,11 @@ template <> struct __lemon_dtrace_log<${LINE}>
 	template<typename Provider ${ARGS_T}>
 	void operator()( Provider &provider , lemon_uint32_t level , lemon_uint32_t catalog , const char * ${ARGS} )
 	{
-		LemonDTraceFlags flags;
+		lemon::trace::flag_t flags = LEMON_MAKE_TRACE_FLAG(level, catalog);
 
-		flags.S.Level = level;
+		lemon::trace::message_commiter cm(provider,flags);
 
-		flags.S.Catalog = catalog;
-
-		lemon::dtrace::commit_message cm(provider,flags);
-
-		if(cm.want())
+		if(!cm.empty())
 		{
 			lemon::uint32_t id = LEMON_MAKE_TRACEMESSAGE_ID(${FILE_ID},${LINE});
 			
@@ -42,9 +39,9 @@ template <> struct __lemon_dtrace_log<${LINE}>
 		
 			lemon::uint8_t args = ${ARGS_1};
 			
-			cm.write_rawdata((const lemon::byte_t*)&id,sizeof(id));
+			cm.write((const lemon::byte_t*)&id,sizeof(id));
 			
-			cm.write_rawdata((const lemon::byte_t*)&args,sizeof(args));
+			cm.write((const lemon::byte_t*)&args,sizeof(args));
 		
 			${WRITE}
 
