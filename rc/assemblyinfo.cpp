@@ -25,7 +25,7 @@ namespace lemon{namespace rc{namespace tools{
 		,_createWin32RcFile(createWin32RcFile)
 		,_files(0)
 	{
-		_package.Version(version.c_str());
+		_package.version(version.c_str());
 
 		luabind::lua_state  L;
 
@@ -60,7 +60,7 @@ namespace lemon{namespace rc{namespace tools{
 
 	const std::string AssemblyInfo::GuidString()
 	{
-		const lemon_byte_t * bytes = (const lemon_byte_t*)_package.Uuid();
+		const lemon_byte_t * bytes = (const lemon_byte_t*)_package.uuid();
 
 		char buffer[128] = {0};
 
@@ -75,7 +75,7 @@ namespace lemon{namespace rc{namespace tools{
 
 	const std::string AssemblyInfo::VersionString()
 	{
-		const LemonVersion * version = _package.Version();
+		const LemonVersion * version = _package.version();
 
 		char buffer[56] = {0};
 
@@ -97,19 +97,17 @@ namespace lemon{namespace rc{namespace tools{
 			errorCode.check_throw(path.c_str());
 		}
 
-		resource::StreamWriter writer(stream);
-
-		_package.Write(writer);
+		_package.write(stream);
 	}
 
 	void AssemblyInfo::AddErrorInfo(lemon::uint32_t code, const char * name,const char * descripton)
 	{
-		_package.NewErrorMessage(code,lemon::from_locale(name).c_str(),lemon::from_locale(descripton).c_str(),LEMON_TEXT(""));
+		_package.error_message(code,lemon::from_locale(name).c_str(),lemon::from_locale(descripton).c_str(),LEMON_TEXT(""));
 	}
 
 	void AssemblyInfo::AddTraceCatalog(lemon::uint32_t value,const char * name,const char * descripton)
 	{
-		_package.NewTraceCatalog(value,lemon::from_locale(name).c_str(),lemon::from_locale(descripton).c_str(),LEMON_TEXT(""));
+		_package.trace_catalog(value,lemon::from_locale(name).c_str(),lemon::from_locale(descripton).c_str(),LEMON_TEXT(""));
 	}
 
 	void AssemblyInfo::AddI18nText(const std::string & key)
@@ -118,14 +116,14 @@ namespace lemon{namespace rc{namespace tools{
 
 		lemon::String val = lemon::from_locale(key);
 
-		_package.NewText(val.c_str(),val.c_str(),LEMON_TEXT(""));
+		_package.text(val.c_str(),val.c_str(),LEMON_TEXT(""));
 	}
 
 	void AssemblyInfo::AddTraceEvent(lemon::uint32_t seq,const std::string & key)
 	{
 		//_resource.add(resource_trace_event(seq,lemon::from_locale(key)));
 
-		_package.NewTraceMessage(seq,lemon::from_locale(key).c_str(),LEMON_TEXT(""));
+		_package.trace(seq,lemon::from_locale(key).c_str(),LEMON_TEXT(""));
 	}
 
 	bool ExtensionCompare(const lemon::String & lhs,const lemon::char_t * rhs)

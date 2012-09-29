@@ -67,7 +67,7 @@ namespace lemon{namespace rc{namespace tools{
 
 		lemon_uint32_t				_files;
 
-		resource::Package			_package;
+		resource::package			_package;
 
 		std::string					_traceMacroName;
 
